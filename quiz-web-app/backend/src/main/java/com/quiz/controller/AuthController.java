@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @RestController
@@ -69,7 +70,7 @@ public class AuthController {
             
             // Set avatar color
             String[] colors = {"#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"};
-            String avatarColor = colors[(int) (Math.random() * colors.length)];
+            String avatarColor = colors[(int) (ThreadLocalRandom.current().nextDouble() * colors.length)];
             user.setAvatarColor(avatarColor);
             
             // Assign default role
