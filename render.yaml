@@ -4,7 +4,6 @@
 databases:
   - name: quiz-postgres
     databaseName: quiz_app
-    user: postgres
     plan: free
     region: oregon
 
