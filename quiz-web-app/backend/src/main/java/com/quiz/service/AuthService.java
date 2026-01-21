@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,7 +55,7 @@ public class AuthService {
         
         // Generate avatar color
         String[] colors = {"#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"};
-        String avatarColor = colors[(int) (Math.random() * colors.length)];
+        String avatarColor = colors[(int) (ThreadLocalRandom.current().nextDouble() * colors.length)];
         user.setAvatarColor(avatarColor);
         
         Set<Role> roles = new HashSet<>();

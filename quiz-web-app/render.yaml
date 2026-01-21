@@ -1,0 +1,63 @@
+# Render.com deployment configuration
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: quiz-postgres
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile.postgres
+    envVars:
+      - key: POSTGRES_DB
+        value: quiz_app
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+
+  # Spring Boot Backend
+  - type: web
+    name: quiz-backend
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: quiz-postgres
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: quiz-postgres
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: quiz-postgres
+          property: password
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: quiz-frontend
+          property: host
+
+  # Next.js Frontend
+  - type: web
+    name: quiz-frontend
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: quiz-backend
+          envVarKey: RENDER_EXTERNAL_URL
