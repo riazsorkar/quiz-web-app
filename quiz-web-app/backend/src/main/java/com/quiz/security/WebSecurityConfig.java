@@ -5,6 +5,7 @@ import com.quiz.security.jwt.AuthTokenFilter;
 import com.quiz.security.jwt.JwtUtils;
 import com.quiz.security.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +35,9 @@ public class WebSecurityConfig {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Value("${cors.allowed.origins:http://localhost:3000}")
+    private String allowedOrigins;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -68,7 +73,8 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN") // Add this line
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             );
         
@@ -81,7 +87,11 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        
+        // Split comma-separated origins
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        configuration.setAllowedOrigins(origins);
+        
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));

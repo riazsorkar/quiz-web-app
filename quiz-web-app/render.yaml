@@ -1,27 +1,21 @@
-# Render.com deployment configuration
-services:
-  # PostgreSQL Database
-  - type: pserv
-    name: quiz-postgres
-    env: docker
+# Render.com Blueprint - Deploy QuizMaster App
+# Free tier deployment with PostgreSQL, Spring Boot, and Next.js
+
+databases:
+  - name: quiz-postgres
+    databaseName: quiz_app
+    user: postgres
     plan: free
     region: oregon
-    dockerfilePath: ./backend/Dockerfile.postgres
-    envVars:
-      - key: POSTGRES_DB
-        value: quiz_app
-      - key: POSTGRES_USER
-        value: postgres
-      - key: POSTGRES_PASSWORD
-        generateValue: true
 
-  # Spring Boot Backend
+services:
+  # Spring Boot Backend API
   - type: web
     name: quiz-backend
-    env: docker
+    runtime: docker
     region: oregon
     plan: free
-    dockerfilePath: ./backend/Dockerfile
+    dockerfilePath: ./backend/Dockerfile.render
     dockerContext: ./backend
     healthCheckPath: /actuator/health
     envVars:
@@ -41,23 +35,18 @@ services:
         value: update
       - key: JWT_SECRET
         generateValue: true
-      - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: quiz-frontend
-          property: host
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
 
   # Next.js Frontend
   - type: web
     name: quiz-frontend
-    env: docker
+    runtime: docker
     region: oregon
     plan: free
-    dockerfilePath: ./frontend/Dockerfile
+    dockerfilePath: ./frontend/Dockerfile.render
     dockerContext: ./frontend
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: quiz-backend
-          envVarKey: RENDER_EXTERNAL_URL
+        sync: false
+
