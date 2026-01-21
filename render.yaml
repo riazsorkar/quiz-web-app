@@ -1,0 +1,52 @@
+# Render.com Blueprint - Deploy QuizMaster App
+# Free tier deployment with PostgreSQL, Spring Boot, and Next.js
+
+databases:
+  - name: quiz-postgres
+    databaseName: quiz_app
+    user: postgres
+    plan: free
+    region: oregon
+
+services:
+  # Spring Boot Backend API
+  - type: web
+    name: quiz-backend
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./quiz-web-app/backend/Dockerfile.render
+    dockerContext: ./quiz-web-app/backend
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: quiz-postgres
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: quiz-postgres
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: quiz-postgres
+          property: password
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+  # Next.js Frontend
+  - type: web
+    name: quiz-frontend
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./quiz-web-app/frontend/Dockerfile.render
+    dockerContext: ./quiz-web-app/frontend
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+
